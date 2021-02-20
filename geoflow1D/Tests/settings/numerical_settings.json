@@ -1,0 +1,15 @@
+{
+    "TransientCycle":
+    {
+        "Unit": "SECOND",
+        "TimeStep": 1.0,
+        "FinalTime": 2.0,
+        "InitialTime": 0.0,
+        "Tolerance": 1.0e-12
+    },
+    "IterativeCycle":
+    {
+        "MaximumNumberOfIterations": 50,
+        "Tolerance": 1.0e-4
+    }
+}
