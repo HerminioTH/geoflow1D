@@ -1,5 +1,6 @@
-from UtilsModule import getJsonData
-from FieldsModule import *
+from .UtilsModule import *
+from .FieldsModule import *
+import json
 
 class PhysicalProperties(object):
 	def __init__(self, grid, folderName):
@@ -42,3 +43,9 @@ class PhysicalProperties(object):
 		self.rho = ScalarField(grid.getNumberOfRegions())
 		for region in grid.getRegions():
 			self.rho.setValue(region, self.phi.getValue(region)*self.rho_f + (1 - self.phi.getValue(region))*self.rho_s.getValue(region))
+
+
+def getJsonData(data_file):
+    with open(data_file, "r") as jsonFile:
+        data= json.load(jsonFile)
+    return data
