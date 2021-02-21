@@ -52,7 +52,7 @@ class LinearSystemDense(object):
     def applyNeumann(self, row, value):
         self.rhs[row] += value
 
-    def applyBoundaryConditionsToMatrix(self, grid, boundSettings, shift):
+    def applyBoundaryConditionsToMatrix(self, grid, boundSettings, shift=0):
         n = grid.getNumberOfVertices()
         for bName in boundSettings.keys():
             bound = grid.getBoundary(bName)
@@ -61,7 +61,7 @@ class LinearSystemDense(object):
             if bType == "Dirichlet":
                 self.applyDirichletToMatrix(bound.getVertex().getIndex() + shift*n, bValue)
 
-    def applyBoundaryConditionsToVector(self, grid, boundSettings, shift):
+    def applyBoundaryConditionsToVector(self, grid, boundSettings, shift=0):
         n = grid.getNumberOfVertices()
         for bName in boundSettings.keys():
             bound = grid.getBoundary(bName)
