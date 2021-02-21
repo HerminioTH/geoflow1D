@@ -12,10 +12,10 @@ def saveDataToJson(fileName, data):
     with open(fileName, "w") as jsonFile:
         json.dump(data, jsonFile, indent=3)
 
-def computeNormL2(vector, grid):
+def computeNormL2(grid, vector):
     soma = 0
     for i,vertex in enumerate(grid.getVertices()):
-        soma += vertex.getVolume()*vector[i]*vector[i]
+        soma += vertex.getVolume()*vector[i]**2
     return soma**0.5
 
 def computeNormInf(vector):

@@ -39,15 +39,15 @@ def AssemblyPorePressureToMatrix(linearSystem, grid, props, uShift=0):
                 linearSystem.addValueToMatrix( bIndex, col, -alpha/2 )
                 linearSystem.addValueToMatrix( fIndex, col, +alpha/2 )
 
-def AssemblyPorePressureToVector(linearSystem, grid, biot, pField, uShift=0):
+def AssemblyPorePressureToVector(linearSystem, grid, props, pField, uShift=0):
     for region in grid.getRegions():
-        alpha = biot.getValue(region)
+        alpha = props.biot.getValue(region)
         for e in region.getElements():
             f = e.getFace()
             bIndex = f.getBackwardVertex().getIndex() + uShift*grid.getNumberOfVertices()
             fIndex = f.getForwardVertex().getIndex() + uShift*grid.getNumberOfVertices()
-            pBack = pField.getValue(backVertex)
-            pFron = pField.getValue(forVertex)
+            pBack = pField.getValue(f.getBackwardVertex())
+            pFron = pField.getValue(f.getForwardVertex())
             value = alpha/2.
             linearSystem.addValueToVector(bIndex, value*pBack)
             linearSystem.addValueToVector(bIndex, value*pFron)
