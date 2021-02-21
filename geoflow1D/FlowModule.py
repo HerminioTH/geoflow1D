@@ -98,6 +98,21 @@ def AssemblyFixedStressAccumulationToMatrix(linearSystem, grid, timeStep, props,
 			linearSystem.addValueToMatrix(bIndex + pShift*n, bIndex + pShift*n, value/deltaOnVertices.getValue(bVertex))
 			linearSystem.addValueToMatrix(fIndex + pShift*n, fIndex + pShift*n, value/deltaOnVertices.getValue(fVertex))
 
+
+def AssemblyFSSToMatrix(linearSystem, grid, timeStep, props, pShift=0):
+	n = grid.getNumberOfVertices()
+	for region in grid.getRegions():
+		alpha = props.biot.getValue(region)
+		K = props.K.getValue(region)
+		for element in region.getElements():
+			bVertex = element.getVertices()[0]
+			fVertex = element.getVertices()[1]
+			bIndex = bVertex.getIndex()
+			fIndex = fVertex.getIndex()
+			value = (alpha*alpha/K)*element.getSubVolume()/timeStep
+			linearSystem.addValueToMatrix(bIndex + pShift*n, bIndex + pShift*n, value)
+			linearSystem.addValueToMatrix(fIndex + pShift*n, fIndex + pShift*n, value)
+
 def AssemblyFixedStressAccumulationToVector(linearSystem, grid, props, timeStep, deltaOnVertices, p_old, pShift=0):
 	n = grid.getNumberOfVertices()
 	for region in grid.getRegions():

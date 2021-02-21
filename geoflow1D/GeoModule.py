@@ -55,6 +55,26 @@ def AssemblyPorePressureToVector(linearSystem, grid, props, pField, uShift=0):
             linearSystem.addValueToVector(fIndex, -value*pFron)
 
 
+def AssemblyUDNMatrix(cooMatrix, grid, props):
+    for region in grid.getRegions():
+        Q = props.Q.getValue(region)
+        alpha = props.biot.getValue(region)
+        coef = alpha*alpha*Q
+        for e in region.getElements():
+            dx = e.getLength()
+            f = e.getFace()
+            bIndex = f.getBackwardVertex().getIndex()
+            fIndex = f.getForwardVertex().getIndex()
+            forceOperator = [-coef/dx, coef/dx]
+            localIndex = 0
+            for v in e.getVertices():
+                flux = forceOperator[localIndex]
+                vIndex = v.getIndex()
+                cooMatrix.addValueToMatrix(bIndex, vIndex, flux)
+                cooMatrix.addValueToMatrix(fIndex, vIndex, -flux)
+                localIndex += 1
+
+
 # ------------------------- PHYSICAL INFLUENCE SCHEME - FULL -------------------------------
 def AssemblyPisFullToGeoMatrix(linearSystem, grid, props, timeStep, uShift=0):
     for region in grid.getRegions():
