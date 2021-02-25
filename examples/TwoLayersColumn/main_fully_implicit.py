@@ -16,13 +16,26 @@ from prettytable import PrettyTable
 
 # ------------------ GRID DATA ------------------------
 L = 10
-nVertices = 25
-nodesCoord, elemConn = createGridData(L, nVertices)
+L_mid = 4.
+n_lower = 13
+n_upper = 24
+nVertices = n_lower + n_upper - 1
+
+regionLowerElems = [e for e in range(n_lower-1)]
+regionUpperElems = [e for e in range(n_lower-1, n_lower+n_upper-2)]
+elemConn = [[i,i+1] for i in range(nVertices-1)]
+
+nodesCoordLower = np.linspace(0, L_mid, n_lower)
+nodesCoordUpper = np.linspace(L_mid, L, n_upper)
+nodesCoord = np.concatenate((nodesCoordLower[:-1], nodesCoordUpper))
+
 gridData = GridData()
 gridData.setElementConnectivity(elemConn)
 gridData.setNodeCoordinates(nodesCoord)
 gridData.addBoundary("TOP", nVertices-2, nVertices-1)
 gridData.addBoundary("BOTTOM", 0, 0)
+gridData.setElementsToRegion("LOWER_LAYER", regionLowerElems)
+gridData.setElementsToRegion("UPPER_LAYER", regionUpperElems)
 # -----------------------------------------------------
 
 # --------------------- GRID --------------------------
@@ -43,10 +56,10 @@ timeHandler = TimeHandler(timeStep, finalTime, initialTime)
 props = PhysicalProperties(grid, "settings//")
 # -----------------------------------------------------
 
+
 # ---------------- INITIAL FIELDS ---------------------
 ic = getJsonData(folder_settings + "IC.json")
-p_old = ScalarField(nVertices, ic.get("Initial Condition").get("Value_u"))
-u_old = ScalarField(nVertices, ic.get("Initial Condition").get("Value_p"))
+p_old, u_old = computeUndrainedSolution(grid, props, folder_settings)
 g = ic.get("Gravity")
 # -----------------------------------------------------
 
@@ -54,7 +67,7 @@ g = ic.get("Gravity")
 nDOF = 2
 ls = LinearSystemCOO(grid.stencil, nDOF)
 ls.initialize()
-pShift = 0
+pShift = 1
 uShift = (1-pShift)
 # -----------------------------------------------------
 
@@ -83,7 +96,7 @@ prec = spla.LinearOperator((2*nVertices, 2*nVertices), preconditioner)
 # -----------------------------------------------------
 
 # ----------------- DEFINE SOLVER ---------------------
-solver = Solver(tol=1e-12, maxiter=5000)
+solver = Solver(tol=1e-15, maxiter=5000)
 solver.setPreconditioner(prec)
 # -----------------------------------------------------
 
@@ -125,6 +138,7 @@ while timeHandler.isFinalTimeReached():
 
 	solver.solve(ls.matrix, ls.rhs)
 	ls.solution = solver.solution
+
 
 	if pShift == 0:	p_new, u_new = ls.splitSolution(nVertices)
 	else:			u_new, p_new = ls.splitSolution(nVertices)

@@ -1,3 +1,6 @@
+# import sys
+# sys.path.append("../../geoflow1D")
+
 import geoflow1D
 from geoflow1D.GridModule import *
 from geoflow1D.FieldsModule import *
@@ -11,7 +14,7 @@ from geoflow1D.SolverModule import *
 from geoflow1D.UtilsModule import *
 
 
-def computeUndrainedSolution(grid, folder_settings):
+def computeUndrainedSolution(grid, props, folder_settings):
 	n = grid.getNumberOfVertices()
 
 	# -------------- NUMERICAL SETTINGS -------------------
@@ -20,10 +23,6 @@ def computeUndrainedSolution(grid, folder_settings):
 	timeStep = num_set.get("TransientCycle").get("FinalTime")
 	finalTime = 10*timeStep
 	timeHandler = TimeHandler( timeStep, finalTime, initialTime )
-	# -----------------------------------------------------
-
-	# -------------- PROPERTIES ---------------------------
-	props = PhysicalProperties(grid, "settings//")
 	# -----------------------------------------------------
 
 	# ---------------- INITIAL FIELDS ---------------------
@@ -37,7 +36,7 @@ def computeUndrainedSolution(grid, folder_settings):
 	nDOF = 2
 	ls = LinearSystemCOO(grid.stencil, nDOF)
 	ls.initialize()
-	pShift = 0
+	pShift = 1
 	uShift = (1-pShift)
 	# -----------------------------------------------------
 
@@ -59,10 +58,17 @@ def computeUndrainedSolution(grid, folder_settings):
 	ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
 	# -----------------------------------------------------
 
-	# ----------------- DEFINE SOLVER ---------------------
-	solver = Solver(tol=1e-14, maxiter=500)
+	# ------------- DEFINE PRECONDITIONER -----------------
+	nVertices = grid.getNumberOfVertices()
+	M_LU = spla.spilu(ls.matrix, fill_factor=100.0)
+	preconditioner = lambda b : M_LU.solve(b)
+	prec = spla.LinearOperator((2*nVertices, 2*nVertices), preconditioner)
 	# -----------------------------------------------------
 
+	# ----------------- DEFINE SOLVER ---------------------
+	solver = Solver(tol=1e-15, maxiter=5000)
+	solver.setPreconditioner(prec)
+	# -----------------------------------------------------
 
 	# -------------- TRANSIENT SOLUTION -------------------
 	timeHandler.advanceTime()

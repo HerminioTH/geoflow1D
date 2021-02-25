@@ -1,4 +1,15 @@
+import geoflow1D
+from geoflow1D.GridModule import *
+from geoflow1D.FieldsModule import *
+from geoflow1D.FlowModule import *
+from geoflow1D.LinearSystemModule import *
+from geoflow1D.CycleControllersModule import *
+from geoflow1D.ResultsHandlerModule import *
+from geoflow1D.PhysicalPropertiesModule import *
+from geoflow1D.SolverModule import *
+from geoflow1D.UtilsModule import *
 
+# -------------- PROBLEM ILLUSTRATION -----------------
 #   p = 12__   ____________________   __ q = -1e-10
 #           \ |                    | /
 #            \|      p_0 = 10      |/
@@ -6,24 +17,7 @@
 #
 #             |------->
 #                      X
-
-
-
-
-
-
-import sys
-sys.path.append("../../geoflow1D")
-
-from GridModule import *
-from FieldsModule import *
-from FlowModule import *
-from LinearSystemModule import *
-from CycleControllersModule import *
-from ResultsHandlerModule import *
-from PhysicalPropertiesModule import *
-from SolverModule import *
-from UtilsModule import *
+# -----------------------------------------------------
 
 # -------------- GRID DATA ----------------------------
 L = 10
