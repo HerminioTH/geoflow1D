@@ -157,12 +157,5 @@ while timeHandler.isFinalTimeReached():
 
 	solver.counter.niter = 0
 
-	# print(ls.matrix.data)
-
-import matplotlib.pyplot as plt
-
-# plt.spy(ls.matrix.todense())
-# plt.show()
-
 res_p.close()
 res_u.close()
