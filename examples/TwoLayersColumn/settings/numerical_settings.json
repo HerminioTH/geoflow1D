@@ -1,0 +1,16 @@
+{
+    "TransientCycle":
+    {
+        "Unit": "SECOND",
+        "TimeStep": 5.0e1,
+        "FinalTime": 1.0e4,
+        "InitialTime": 0.0,
+        "Tolerance": 1.0e-12
+    },
+    "IterativeCycle":
+    {
+        "MaximumNumberOfIterations": 500,
+        "Tolerance": 1.0e-3
+    },
+    "SplittingScheme": "FSS"
+}
