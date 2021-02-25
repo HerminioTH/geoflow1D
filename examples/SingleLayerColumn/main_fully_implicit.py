@@ -129,11 +129,11 @@ while timeHandler.isFinalTimeReached():
 	if pShift == 0:	p_new, u_new = ls.splitSolution(nVertices)
 	else:			u_new, p_new = ls.splitSolution(nVertices)
 
-	res_p.saveField(timeHandler.getCurrentTime(), p_old.getField())
-	res_u.saveField(timeHandler.getCurrentTime(), u_old.getField())
-
 	p_old.setField(p_new)
 	u_old.setField(u_new)
+
+	res_p.saveField(timeHandler.getCurrentTime(), p_old.getField())
+	res_u.saveField(timeHandler.getCurrentTime(), u_old.getField())
 
 	timeHandler.advanceTime()
 

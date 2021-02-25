@@ -188,11 +188,11 @@ while timeHandler.isFinalTimeReached():
 	print( "\n".join(table.get_string().splitlines()[-2:]) )
 	timeLevel += 1
 
-	res_p.saveField(timeHandler.getCurrentTime(), p_old.getField())
-	res_u.saveField(timeHandler.getCurrentTime(), u_old.getField())
-
 	p_old.setField(p_new.getField())
 	u_old.setField(u_new.getField())
+
+	res_p.saveField(timeHandler.getCurrentTime(), p_old.getField())
+	res_u.saveField(timeHandler.getCurrentTime(), u_old.getField())
 
 	timeHandler.advanceTime()
 # -----------------------------------------------------
