@@ -1,5 +1,13 @@
+import geoflow1D
+from geoflow1D.GridModule import *
+from geoflow1D.FieldsModule import *
+from geoflow1D.LinearSystemModule import *
+from geoflow1D.FlowModule import *
+from geoflow1D.SolverModule import *
+import numpy as np
+from matplotlib import pyplot as plt
 
-
+# -------------- PROBLEM ILLUSTRATION -----------------
 # 		 ---   +-------+
 # 		  |    |.......|  |\
 #  	 |    |    |.......|  |-\
@@ -13,18 +21,7 @@
 #  x ^	  |    |.......|  |---------\
 # 	 |	  |    |.......|  |----------\
 # 	_|_  _|_   |_______|  |___________\
-
-
-
-import sys
-sys.path.append("../../geoflow1D")
-from GridModule import *
-from FieldsModule import *
-from LinearSystemModule import *
-from FlowModule import *
-from SolverModule import *
-import numpy as np
-from matplotlib import pyplot as plt
+# -----------------------------------------------------
 
 class FluidProps(object):
 	def __init__(self, grid, permeability, density, viscosity):
