@@ -1,16 +1,14 @@
-import sys
-sys.path.append("../../geoflow1D")
-
-from GridModule import *
-from FieldsModule import *
-from FlowModule import *
-from GeoModule import *
-from LinearSystemModule import *
-from CycleControllersModule import *
-from ResultsHandlerModule import *
-from PhysicalPropertiesModule import *
-from SolverModule import *
-from UtilsModule import *
+import geoflow1D
+from geoflow1D.GridModule import *
+from geoflow1D.FieldsModule import *
+from geoflow1D.FlowModule import *
+from geoflow1D.GeoModule import *
+from geoflow1D.LinearSystemModule import *
+from geoflow1D.CycleControllersModule import *
+from geoflow1D.ResultsHandlerModule import *
+from geoflow1D.PhysicalPropertiesModule import *
+from geoflow1D.SolverModule import *
+from geoflow1D.UtilsModule import *
 from UndrainedConsolidation import *
 
 from prettytable import PrettyTable
@@ -18,7 +16,7 @@ from prettytable import PrettyTable
 
 # ------------------ GRID DATA ------------------------
 L = 10
-nVertices = 15
+nVertices = 25
 nodesCoord, elemConn = createGridData(L, nVertices)
 gridData = GridData()
 gridData.setElementConnectivity(elemConn)
@@ -78,8 +76,15 @@ AssemblyPorePressureToMatrix(ls, grid, props, uShift)
 ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
 # -----------------------------------------------------
 
+# ------------- DEFINE PRECONDITIONER -----------------
+M_LU = spla.spilu(ls.matrix, fill_factor=100.0)
+preconditioner = lambda b : M_LU.solve(b)
+prec = spla.LinearOperator((2*nVertices, 2*nVertices), preconditioner)
+# -----------------------------------------------------
+
 # ----------------- DEFINE SOLVER ---------------------
-solver = Solver(tol=1e-14, maxiter=500)
+solver = Solver(tol=1e-12, maxiter=5000)
+solver.setPreconditioner(prec)
 # -----------------------------------------------------
 
 # --------------- RESULTS HANDLER ---------------------

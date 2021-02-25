@@ -1,4 +1,13 @@
+import geoflow1D
+from geoflow1D.GridModule import *
+from geoflow1D.FieldsModule import *
+from geoflow1D.LinearSystemModule import *
+from geoflow1D.GeoModule import *
+from geoflow1D.SolverModule import *
+import numpy as np
+from matplotlib import pyplot as plt
 
+# -------------- PROBLEM ILLUSTRATION -----------------
 # 		     | sigma
 # 		     |
 # 		 +---V---+  ---
@@ -14,18 +23,7 @@
 #  x ^	 |       |   |
 # 	 |	 |       |   |
 # 	_|_  |_______|  _|_
-
-
-
-import sys
-sys.path.append("../../geoflow1D")
-from GridModule import *
-from FieldsModule import *
-from LinearSystemModule import *
-from GeoModule import *
-from SolverModule import *
-import numpy as np
-from matplotlib import pyplot as plt
+# -----------------------------------------------------
 
 class SolidProps(object):
 	def __init__(self, grid, M, rho):

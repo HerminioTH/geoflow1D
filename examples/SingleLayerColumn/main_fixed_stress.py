@@ -1,16 +1,14 @@
-import sys
-sys.path.append("../../geoflow1D")
-
-from GridModule import *
-from FieldsModule import *
-from FlowModule import *
-from GeoModule import *
-from LinearSystemModule import *
-from CycleControllersModule import *
-from ResultsHandlerModule import *
-from PhysicalPropertiesModule import *
-from SolverModule import *
-from UtilsModule import *
+import geoflow1D
+from geoflow1D.GridModule import *
+from geoflow1D.FieldsModule import *
+from geoflow1D.FlowModule import *
+from geoflow1D.GeoModule import *
+from geoflow1D.LinearSystemModule import *
+from geoflow1D.CycleControllersModule import *
+from geoflow1D.ResultsHandlerModule import *
+from geoflow1D.PhysicalPropertiesModule import *
+from geoflow1D.SolverModule import *
+from geoflow1D.UtilsModule import *
 from UndrainedConsolidation import *
 
 from matplotlib import pyplot as plt
@@ -31,7 +29,7 @@ def computeRelativeError(grid, vec1, vec2, denominator):
 
 # ------------------ GRID DATA ------------------------
 L = 10
-nVertices = 15
+nVertices = 25
 nodesCoord, elemConn = createGridData(L, nVertices)
 gridData = GridData()
 gridData.setElementConnectivity(elemConn)
