@@ -5,12 +5,14 @@ from geoflow1D.FieldsModule import *
 from geoflow1D.StaggeredFlowModule import *
 from geoflow1D.StaggeredGeoModule import *
 
-from StaggeredLinearSystemModule import *
 from geoflow1D.CycleControllersModule import *
 from geoflow1D.ResultsHandlerModule import *
 from geoflow1D.PhysicalPropertiesModule import *
 from geoflow1D.SolverModule import *
 from geoflow1D.UtilsModule import *
+
+from StaggeredLinearSystemModule import *
+from StaggeredResultsHandler import StaggeredSaveResults
 
 from prettytable import PrettyTable
 
@@ -18,7 +20,8 @@ import matplotlib.pyplot as plt
 
 # ------------------ GRID DATA ------------------------
 L = 10
-nVertices = 5
+nVertices = 50
+nElements = nVertices - 1
 nodesCoord, elemConn = createGridData(L, nVertices)
 gridData = GridData()
 gridData.setElementConnectivity(elemConn)
@@ -47,7 +50,9 @@ props = PhysicalProperties(grid, "settings//")
 
 # ---------------- INITIAL FIELDS ---------------------
 ic = getJsonData(folder_settings + "IC.json")
-p_old = ScalarField(nVertices, ic.get("Initial Condition").get("Value_u"))
+p_old = ScalarField(nElements, ic.get("Initial Condition").get("Value_u"))
+for elem in grid.getElements():
+	p_old.setValue(elem, 1e5)
 u_old = ScalarField(nVertices, ic.get("Initial Condition").get("Value_p"))
 g = ic.get("Gravity")
 # -----------------------------------------------------
@@ -67,19 +72,22 @@ bound_u = getJsonData(folder_settings + "BC_u.json")
 
 # --------------- FLUID FLOW MODEL --------------------
 AssemblyDarcyVelocitiesToMatrix(ls, grid, props, pShift)
-print(ls.matrix)
-plt.spy(ls.matrix)
-plt.show()
-# AssemblyBiotAccumulationToMatrix(ls, grid, timeStep, props, pShift)
+AssemblyBiotAccumulationToMatrix(ls, grid, timeStep, props, pShift)
 # AssemblyVolumetricStrainToMatrix(ls, grid, timeStep, props, pShift)
 # ls.applyBoundaryConditionsToMatrix(grid, bound_p, pShift)
 # # -----------------------------------------------------
 
-# # -------------- GEOMECHANICAL MODEL ------------------
-# AssemblyStiffnessMatrix(ls, grid, props, uShift)
+# -------------- GEOMECHANICAL MODEL ------------------
+AssemblyStiffnessMatrix(ls, grid, props, uShift)
 # AssemblyPorePressureToMatrix(ls, grid, props, uShift)
-# ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
-# # -----------------------------------------------------
+ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
+# for vertex in grid.getVertices():
+# 	ls.setValueToMatrix(vertex.getIndex() + uShift*nVertices, vertex.getIndex() + uShift*nVertices, 1.0)
+# -----------------------------------------------------
+
+# print(ls.matrix)
+# plt.spy(ls.matrix, markersize=20)
+# plt.show()
 
 # # ------------- DEFINE PRECONDITIONER -----------------
 # M_LU = spla.spilu(ls.matrix, fill_factor=100.0)
@@ -92,61 +100,65 @@ plt.show()
 # # solver.setPreconditioner(prec)
 # # -----------------------------------------------------
 
-# # --------------- RESULTS HANDLER ---------------------
-# folderName = "results//FIM//"
-# res_p = SaveResults(grid, "p.txt", folderName, 'Pressure', 'Pa')
-# res_u = SaveResults(grid, "u.txt", folderName, 'Displacement', 'm')
-# res_u.copySettings("settings//", folderName)
-# # -----------------------------------------------------
+# --------------- RESULTS HANDLER ---------------------
+folderName = "results//FIM//"
+res_p = StaggeredSaveResults(grid, "p.txt", folderName, 'Pressure', 'Pa')
+res_u = SaveResults(grid, "u.txt", folderName, 'Displacement', 'm')
+res_u.copySettings("settings//", folderName)
+# -----------------------------------------------------
 
 
-# # ----------------- PRETTY TABLE ----------------------
-# table = PrettyTable(['Time Level', '        Time', '     nIte', '        Residue'])
-# table.align['Time Level'] = 'l'
-# table.align['        Time'] = 'r'
-# table.align['     nIte'] = 'r'
-# table.align['        Residue'] = 'r'
-# table.hrules = 1
-# print(table)
-# # -----------------------------------------------------
+# ----------------- PRETTY TABLE ----------------------
+table = PrettyTable(['Time Level', '        Time', '     nIte', '        Residue'])
+table.align['Time Level'] = 'l'
+table.align['        Time'] = 'r'
+table.align['     nIte'] = 'r'
+table.align['        Residue'] = 'r'
+table.hrules = 1
+print(table)
+# -----------------------------------------------------
 
-# # -------------- TRANSIENT SOLUTION -------------------
-# timeHandler.advanceTime()
-# timeLevel = 0
-# while timeHandler.isFinalTimeReached():
-# 	ls.eraseVector()
+# -------------- TRANSIENT SOLUTION -------------------
+A_inv = np.linalg.inv(ls.matrix)
+timeHandler.advanceTime()
+timeLevel = 0
+while timeHandler.isFinalTimeReached():
+	ls.eraseVector()
 
-# 	# --------------- FLUID FLOW MODEL --------------------
-# 	AssemblyDarcyVelocitiesToVector(ls, grid, props, g, pShift)
-# 	AssemblyBiotAccumulationToVector(ls, grid, props, timeStep, p_old, pShift)
-# 	AssemblyVolumetricStrainToVector(ls, grid, props, timeStep, u_old, pShift)
-# 	ls.applyBoundaryConditionsToVector(grid, bound_p, pShift)
-# 	# -----------------------------------------------------
+	# --------------- FLUID FLOW MODEL --------------------
+	# AssemblyDarcyVelocitiesToVector(ls, grid, props, g, pShift)
+	AssemblyBiotAccumulationToVector(ls, grid, props, timeStep, p_old, pShift)
+	# AssemblyVolumetricStrainToVector(ls, grid, props, timeStep, u_old, pShift)
+	# ls.applyBoundaryConditionsToVector(grid, bound_p, pShift)
+	# -----------------------------------------------------
 
-# 	# -------------- GEOMECHANICAL MODEL ------------------
-# 	AssemblyGravityToVector(ls, grid, props, g, uShift)
-# 	ls.applyBoundaryConditionsToVector(grid, bound_u, uShift)
-# 	# -----------------------------------------------------
+	# -------------- GEOMECHANICAL MODEL ------------------
+	AssemblyGravityToVector(ls, grid, props, g, uShift)
+	ls.applyBoundaryConditionsToVector(grid, bound_u, uShift)
+	# -----------------------------------------------------
 
-# 	solver.solve(ls.matrix, ls.rhs)
-# 	ls.solution = solver.solution
+	# solver.solve(ls.matrix, ls.rhs)
+	# ls.solution = solver.solution
 
-# 	if pShift == 0:	p_new, u_new = ls.splitSolution(nVertices)
-# 	else:			u_new, p_new = ls.splitSolution(nVertices)
+	ls.solution = A_inv.dot(ls.rhs)
 
-# 	p_old.setField(p_new)
-# 	u_old.setField(u_new)
+	if pShift == 0:	p_new, u_new = ls.splitSolution(nVertices)
+	else:			u_new, p_new = ls.splitSolution(nVertices)
 
-# 	res_p.saveField(timeHandler.getCurrentTime(), p_old.getField())
-# 	res_u.saveField(timeHandler.getCurrentTime(), u_old.getField())
+	p_old.setField(p_new)
+	u_old.setField(u_new)
 
-# 	timeHandler.advanceTime()
+	res_p.saveField(timeHandler.getCurrentTime(), p_old.getField())
+	res_u.saveField(timeHandler.getCurrentTime(), u_old.getField())
 
-# 	table.add_row([timeLevel, timeHandler.getCurrentTime(), solver.counter.niter, solver.counter.residues[-2]])
-# 	print( "\n".join(table.get_string().splitlines()[-2:]) )
-# 	timeLevel += 1
+	timeHandler.advanceTime()
 
-# 	solver.counter.niter = 0
+	# table.add_row([timeLevel, timeHandler.getCurrentTime(), solver.counter.niter, solver.counter.residues[-2]])
+	table.add_row([timeLevel, timeHandler.getCurrentTime(), 0, 0])
+	print( "\n".join(table.get_string().splitlines()[-2:]) )
+	timeLevel += 1
 
-# res_p.close()
-# res_u.close()
+	# solver.counter.niter = 0
+
+res_p.close()
+res_u.close()

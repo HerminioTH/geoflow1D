@@ -7,31 +7,15 @@ def AssemblyDarcyVelocitiesToMatrix(linearSystem, grid, props, pShift=0):
 		rf = grid.getRegions()[ef.getParentRegionIndex()]
 		kb = props.k.getValue(rb)
 		kf = props.k.getValue(rf)
-		k = (kb + kf)/(kb*kf)
-		linearSystem.addValueToMatrix(eb.getIndex() + pShift*n, eb.getIndex() + pShift*n, -k/props.mu)
-		linearSystem.addValueToMatrix(eb.getIndex() + pShift*n, ef.getIndex() + pShift*n, +k/props.mu)
-		linearSystem.addValueToMatrix(ef.getIndex() + pShift*n, ef.getIndex() + pShift*n, +k/props.mu)
-		linearSystem.addValueToMatrix(ef.getIndex() + pShift*n, eb.getIndex() + pShift*n, -k/props.mu)
+		k = (kb*kf)/(kb + kf)
+		dx = abs(eb.getCentroid() - ef.getCentroid())
+		linearSystem.addValueToMatrix(eb.getIndex() + pShift*n, eb.getIndex() + pShift*n, +k/(props.mu*dx))
+		linearSystem.addValueToMatrix(eb.getIndex() + pShift*n, ef.getIndex() + pShift*n, -k/(props.mu*dx))
+		linearSystem.addValueToMatrix(ef.getIndex() + pShift*n, ef.getIndex() + pShift*n, +k/(props.mu*dx))
+		linearSystem.addValueToMatrix(ef.getIndex() + pShift*n, eb.getIndex() + pShift*n, -k/(props.mu*dx))
 
-
-
-
-	# for region in grid.getRegions():
-	# 	k = props.k.getValue(region)
-	# 	for elem in region.getElements():
-	# 		dx = elem.getLength()
-	# 		face = elem.getFace()
-	# 		A = face.getArea()
-	# 		backVertex = face.getBackwardVertex()
-	# 		forVertex = face.getForwardVertex()
-	# 		bIndex = backVertex.getIndex() + pShift*grid.getNumberOfVertices()
-	# 		fIndex = forVertex.getIndex() + pShift*grid.getNumberOfVertices()
-	# 		diffusiveOperator = [k*A/props.mu, -k*A/props.mu]
-	# 		for i,v in enumerate(elem.getVertices()):
-	# 			flux = diffusiveOperator[i]
-	# 			vIndex = v.getIndex() + pShift*grid.getNumberOfVertices()
-	# 			linearSystem.addValueToMatrix(bIndex, vIndex, +flux/dx)
-	# 			linearSystem.addValueToMatrix(fIndex, vIndex, -flux/dx)
+	last_elem = grid.getElements()[-1]
+	linearSystem.addValueToMatrix(last_elem.getIndex() + pShift*n, last_elem.getIndex() + pShift*n, k/(props.mu*dx/2))
 
 
 def AssemblyBiotAccumulationToMatrix(linearSystem, grid, timeStep, props, pShift=0):
@@ -41,11 +25,19 @@ def AssemblyBiotAccumulationToMatrix(linearSystem, grid, timeStep, props, pShift
 		alpha = props.biot.getValue(region)
 		cs = props.cs.getValue(region)
 		for element in region.getElements():
-			bIndex = element.getVertices()[0].getIndex()
-			fIndex = element.getVertices()[1].getIndex()
-			value = (props.cf*phi + cs*(alpha - phi))*element.getSubVolume()/timeStep
-			linearSystem.addValueToMatrix(bIndex + pShift*n, bIndex + pShift*n, value)
-			linearSystem.addValueToMatrix(fIndex + pShift*n, fIndex + pShift*n, value)
+			value = (props.cf*phi + cs*(alpha - phi))*element.getVolume()/timeStep
+			linearSystem.addValueToMatrix(element.getIndex() + pShift*n, element.getIndex() + pShift*n, value)
+
+def AssemblyBiotAccumulationToVector(linearSystem, grid, props, timeStep, p_old, pShift=0):
+	n = grid.getNumberOfVertices()
+	for region in grid.getRegions():
+		phi = props.phi.getValue(region)
+		alpha = props.biot.getValue(region)
+		cs = props.cs.getValue(region)
+		for element in region.getElements():
+			value = (props.cf*phi + cs*(alpha - phi))*element.getVolume()/timeStep
+			linearSystem.addValueToVector(element.getIndex() + pShift*n, value*p_old.getValue(element))
+
 
 def AssemblyVolumetricStrainToMatrix(linearSystem, grid, timeStep, props, pShift=0):
 	n = grid.getNumberOfVertices()
@@ -82,18 +74,6 @@ def AssemblyDarcyVelocitiesToVector(linearSystem, grid, props, gravity, pShift=0
 			linearSystem.addValueToVector(bIndex, -value)
 			linearSystem.addValueToVector(fIndex,  value)
 
-def AssemblyBiotAccumulationToVector(linearSystem, grid, props, timeStep, p_old, pShift=0):
-	n = grid.getNumberOfVertices()
-	for region in grid.getRegions():
-		phi = props.phi.getValue(region)
-		alpha = props.biot.getValue(region)
-		cs = props.cs.getValue(region)
-		for element in region.getElements():
-			bVertex = element.getVertices()[0]
-			fVertex = element.getVertices()[1]
-			value = (props.cf*phi + cs*(alpha - phi))*element.getSubVolume()/timeStep
-			linearSystem.addValueToVector(bVertex.getIndex() + pShift*n, value*p_old.getValue(bVertex))
-			linearSystem.addValueToVector(fVertex.getIndex() + pShift*n, value*p_old.getValue(fVertex))
 
 def AssemblyVolumetricStrainToVector(linearSystem, grid, props, timeStep, u_old, pShift=0):
 	n = grid.getNumberOfVertices()

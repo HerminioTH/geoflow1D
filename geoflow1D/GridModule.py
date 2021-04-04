@@ -90,6 +90,11 @@ class Element(object):
     def getParentRegionIndex(self):
         return self.__parentRegionIndex
 
+    def getCentroid(self):
+        x0 = self.__vertices[0].getCoordinate()
+        x1 = self.__vertices[1].getCoordinate()
+        return (x0 + x1)/2
+
     def getVertices(self):
         return self.__vertices
 

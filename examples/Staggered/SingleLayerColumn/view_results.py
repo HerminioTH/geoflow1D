@@ -2,6 +2,9 @@ import sys
 sys.path.append("../../geoflow1D")
 
 import matplotlib.pyplot as plt
+import sys
+sys.path.append("../../../geoflow1D")
+
 from UtilsModule import getJsonData
 from solgeom import Terzaghi as tz
 from ResultsHandlerModule import *
@@ -13,7 +16,6 @@ def getTerza(folderName, H, tao, g):
 
 
 folderName = "results//FIM//"
-folderName = "results//FSS//"
 print(folderName + "p.txt")
 
 
