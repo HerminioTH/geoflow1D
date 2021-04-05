@@ -42,8 +42,9 @@ class LinearSystemDense(object):
         self.applyDirichletToVector(row, value)
 
     def applyDirichletToMatrix(self, row, value):
-        for col in range(self.size):
-            self.matrix[row][col] = 0.0
+        self.matrix[row,:] = np.zeros(self.size)
+        # for col in range(self.size):
+            # self.matrix[row][col] = 0.0
         self.matrix[row][row] = 1.0
 
     def applyDirichletToVector(self, row, value):

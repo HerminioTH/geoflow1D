@@ -15,9 +15,12 @@ from StaggeredResultsHandler import StaggeredSaveResults
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
 
+import solgeom as sg
+# from Terzaghi import Solution
+
 # ------------------ GRID DATA ------------------------
 L = 10
-nVertices = 25
+nVertices = 30
 nElements = nVertices - 1
 nodesCoord, elemConn = createGridData(L, nVertices)
 gridData = GridData()
@@ -67,6 +70,13 @@ bound_p = getJsonData(folder_settings + "BC_p.json")
 bound_u = getJsonData(folder_settings + "BC_u.json")
 # -----------------------------------------------------
 
+# -------------- ANALYTICAL SOLUTION ------------------
+rock = json.load(open("settings//solid.json", "r"))
+fluid = json.load(open("settings//fluid.json", "r"))
+load = -bound_u.get("TOP").get("Value")
+terza = sg.Terzaghi.Solution(L, load, rock, fluid , 0.0)
+# -----------------------------------------------------
+
 # --------------- FLUID FLOW MODEL --------------------
 AssemblyDarcyVelocitiesToMatrix(ls, grid, props, pShift)
 AssemblyBiotAccumulationToMatrix(ls, grid, timeStep, props, pShift)
@@ -75,17 +85,17 @@ AssemblyVolumetricStrainToMatrix(ls, grid, timeStep, props, pShift)
 # # -----------------------------------------------------
 
 # -------------- GEOMECHANICAL MODEL ------------------
-AssemblyStiffnessMatrix(ls, grid, props, uShift)
+# AssemblyStiffnessMatrix(ls, grid, props, uShift)
 # AssemblyPorePressureToMatrix(ls, grid, props, uShift)
-ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
-# for vertex in grid.getVertices():
-# 	ls.setValueToMatrix(vertex.getIndex() + uShift*nVertices, vertex.getIndex() + uShift*nVertices, 1.0)
+# ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
+for vertex in grid.getVertices():
+	ls.applyDirichletToMatrix(vertex.getIndex() + uShift*nVertices, 0.0)
 # -----------------------------------------------------
-'''
-print(ls.matrix)
-plt.spy(ls.matrix, markersize=20)
-plt.show()
-'''
+
+# print(ls.matrix)
+# plt.spy(ls.matrix, markersize=20)
+# plt.show()
+
 # # ------------- DEFINE PRECONDITIONER -----------------
 # M_LU = spla.spilu(ls.matrix, fill_factor=100.0)
 # preconditioner = lambda b : M_LU.solve(b)
@@ -130,8 +140,12 @@ while timeHandler.isFinalTimeReached():
 	# -----------------------------------------------------
 
 	# -------------- GEOMECHANICAL MODEL ------------------
-	AssemblyGravityToVector(ls, grid, props, g, uShift)
-	ls.applyBoundaryConditionsToVector(grid, bound_u, uShift)
+	# AssemblyGravityToVector(ls, grid, props, g, uShift)
+	# ls.applyBoundaryConditionsToVector(grid, bound_u, uShift)
+	for vertex in grid.getVertices():
+		value = terza.getDisplacementValuesAtPosition(vertex.getCoordinate(), [timeHandler.getCurrentTime()])
+		index = vertex.getIndex() + uShift*nVertices
+		ls.applyDirichletToVector(index, -value)
 	# -----------------------------------------------------
 
 	# solver.solve(ls.matrix, ls.rhs)

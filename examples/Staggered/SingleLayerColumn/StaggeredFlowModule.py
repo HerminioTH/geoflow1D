@@ -54,13 +54,12 @@ def AssemblyVolumetricStrainToMatrix(linearSystem, grid, timeStep, props, pShift
 		value = biot/timeStep
 		linearSystem.addValueToMatrix(eb.getIndex() + pShift*n, vertex.getIndex() + (1-pShift)*n, +value)
 		linearSystem.addValueToMatrix(ef.getIndex() + pShift*n, vertex.getIndex() + (1-pShift)*n, -value)
-
 	first_elem = grid.getElements()[0]
 	last_elem = grid.getElements()[-1]
 	first_vertex = grid.getVertices()[0]
 	last_vertex = grid.getVertices()[-1]
+	linearSystem.addValueToMatrix(last_elem.getIndex()  + pShift*n, last_vertex.getIndex()  + (1-pShift)*n, +value)
 	linearSystem.addValueToMatrix(first_elem.getIndex() + pShift*n, first_vertex.getIndex() + (1-pShift)*n, -value)
-	linearSystem.addValueToMatrix(last_elem.getIndex() + pShift*n, last_vertex.getIndex() + (1-pShift)*n, +value)
 
 
 def AssemblyVolumetricStrainToVector(linearSystem, grid, props, timeStep, u_old, pShift=0):
@@ -77,13 +76,12 @@ def AssemblyVolumetricStrainToVector(linearSystem, grid, props, timeStep, u_old,
 		value = biot/timeStep
 		linearSystem.addValueToVector(eb.getIndex() + pShift*n, +value*u_old.getValue(vertex))
 		linearSystem.addValueToVector(ef.getIndex() + pShift*n, -value*u_old.getValue(vertex))
-
 	first_elem = grid.getElements()[0]
 	last_elem = grid.getElements()[-1]
 	first_vertex = grid.getVertices()[0]
 	last_vertex = grid.getVertices()[-1]
+	linearSystem.addValueToVector(last_elem.getIndex()  + pShift*n, +value*u_old.getValue(last_vertex))
 	linearSystem.addValueToVector(first_elem.getIndex() + pShift*n, -value*u_old.getValue(first_vertex))
-	linearSystem.addValueToVector(last_elem.getIndex() + pShift*n, +value*u_old.getValue(last_vertex))
 
 
 # def AssemblyVolumetricStrainToVector(linearSystem, grid, props, timeStep, u_old, pShift=0):
