@@ -1,26 +1,23 @@
 import geoflow1D
 from geoflow1D.GridModule import *
 from geoflow1D.FieldsModule import *
-
-from geoflow1D.StaggeredFlowModule import *
-from geoflow1D.StaggeredGeoModule import *
-
 from geoflow1D.CycleControllersModule import *
 from geoflow1D.ResultsHandlerModule import *
 from geoflow1D.PhysicalPropertiesModule import *
 from geoflow1D.SolverModule import *
 from geoflow1D.UtilsModule import *
 
+from StaggeredFlowModule import *
+from StaggeredGeoModule import *
 from StaggeredLinearSystemModule import *
 from StaggeredResultsHandler import StaggeredSaveResults
 
 from prettytable import PrettyTable
-
 import matplotlib.pyplot as plt
 
 # ------------------ GRID DATA ------------------------
 L = 10
-nVertices = 50
+nVertices = 25
 nElements = nVertices - 1
 nodesCoord, elemConn = createGridData(L, nVertices)
 gridData = GridData()
@@ -51,8 +48,8 @@ props = PhysicalProperties(grid, "settings//")
 # ---------------- INITIAL FIELDS ---------------------
 ic = getJsonData(folder_settings + "IC.json")
 p_old = ScalarField(nElements, ic.get("Initial Condition").get("Value_u"))
-for elem in grid.getElements():
-	p_old.setValue(elem, 1e5)
+# for elem in grid.getElements():
+# 	p_old.setValue(elem, 1e5)
 u_old = ScalarField(nVertices, ic.get("Initial Condition").get("Value_p"))
 g = ic.get("Gravity")
 # -----------------------------------------------------
@@ -73,7 +70,7 @@ bound_u = getJsonData(folder_settings + "BC_u.json")
 # --------------- FLUID FLOW MODEL --------------------
 AssemblyDarcyVelocitiesToMatrix(ls, grid, props, pShift)
 AssemblyBiotAccumulationToMatrix(ls, grid, timeStep, props, pShift)
-# AssemblyVolumetricStrainToMatrix(ls, grid, timeStep, props, pShift)
+AssemblyVolumetricStrainToMatrix(ls, grid, timeStep, props, pShift)
 # ls.applyBoundaryConditionsToMatrix(grid, bound_p, pShift)
 # # -----------------------------------------------------
 
@@ -84,11 +81,11 @@ ls.applyBoundaryConditionsToMatrix(grid, bound_u, uShift)
 # for vertex in grid.getVertices():
 # 	ls.setValueToMatrix(vertex.getIndex() + uShift*nVertices, vertex.getIndex() + uShift*nVertices, 1.0)
 # -----------------------------------------------------
-
-# print(ls.matrix)
-# plt.spy(ls.matrix, markersize=20)
-# plt.show()
-
+'''
+print(ls.matrix)
+plt.spy(ls.matrix, markersize=20)
+plt.show()
+'''
 # # ------------- DEFINE PRECONDITIONER -----------------
 # M_LU = spla.spilu(ls.matrix, fill_factor=100.0)
 # preconditioner = lambda b : M_LU.solve(b)
@@ -128,7 +125,7 @@ while timeHandler.isFinalTimeReached():
 	# --------------- FLUID FLOW MODEL --------------------
 	# AssemblyDarcyVelocitiesToVector(ls, grid, props, g, pShift)
 	AssemblyBiotAccumulationToVector(ls, grid, props, timeStep, p_old, pShift)
-	# AssemblyVolumetricStrainToVector(ls, grid, props, timeStep, u_old, pShift)
+	AssemblyVolumetricStrainToVector(ls, grid, props, timeStep, u_old, pShift)
 	# ls.applyBoundaryConditionsToVector(grid, bound_p, pShift)
 	# -----------------------------------------------------
 
