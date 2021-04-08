@@ -2,8 +2,8 @@
     "TransientCycle":
     {
         "Unit": "SECOND",
-        "TimeStep": 1.0,
-        "FinalTime": 1.0e2,
+        "TimeStep": 1.0e0,
+        "FinalTime": 5.0e0,
         "InitialTime": 0.0,
         "Tolerance": 1.0e-12
     },

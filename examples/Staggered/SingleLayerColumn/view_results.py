@@ -21,7 +21,7 @@ print(folderName + "p.txt")
 
 res_p = ReadResults(folderName + "p.txt")
 res_u = ReadResults(folderName + "u.txt")
-L = res_p.coord[-1]
+L = res_u.coord[-1]
 
 ic = getJsonData(folderName + "IC.json")
 g = ic.get("Gravity")
@@ -40,7 +40,8 @@ mm = 1e-3
 plt.figure(figsize=(15,6))
 plt.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
 
-times = [1, 10, 50, -1]
+times = [1, 2, 10, 50, -1]
+times = [-1]
 
 plt.subplot(1,2,1)
 for t in times:

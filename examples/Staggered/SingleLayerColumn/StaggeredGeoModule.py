@@ -16,16 +16,26 @@ def AssemblyStiffnessMatrix(linearSystem, grid, props, uShift=0):
                 localIndex += 1
 
 def AssemblyPorePressureToMatrix(linearSystem, grid, props, uShift=0):
+    n = grid.getNumberOfVertices()
     for region in grid.getRegions():
         alpha = props.biot.getValue(region)
-        for e in region.getElements():
-            f = e.getFace()
-            bIndex = f.getBackwardVertex().getIndex() + uShift*grid.getNumberOfVertices()
-            fIndex = f.getForwardVertex().getIndex() + uShift*grid.getNumberOfVertices()
-            for i,v in enumerate(e.getVertices()):
-                col = v.getIndex() + (1-uShift)*grid.getNumberOfVertices()
-                linearSystem.addValueToMatrix( bIndex, col, -alpha/2 )
-                linearSystem.addValueToMatrix( fIndex, col, +alpha/2 )
+        for element in region.getElements():
+            vertex_b = element.getVertices()[0]
+            vertex_f = element.getVertices()[1]
+            linearSystem.addValueToMatrix(vertex_b.getIndex() + n*uShift, element.getIndex() + n*(1-uShift), -alpha)
+            linearSystem.addValueToMatrix(vertex_f.getIndex() + n*uShift, element.getIndex() + n*(1-uShift), +alpha)
+
+# def AssemblyPorePressureToMatrix(linearSystem, grid, props, uShift=0):
+#     for region in grid.getRegions():
+#         alpha = props.biot.getValue(region)
+#         for e in region.getElements():
+#             f = e.getFace()
+#             bIndex = f.getBackwardVertex().getIndex() + uShift*grid.getNumberOfVertices()
+#             fIndex = f.getForwardVertex().getIndex() + uShift*grid.getNumberOfVertices()
+#             for i,v in enumerate(e.getVertices()):
+#                 col = v.getIndex() + (1-uShift)*grid.getNumberOfVertices()
+#                 linearSystem.addValueToMatrix( bIndex, col, -alpha/2 )
+#                 linearSystem.addValueToMatrix( fIndex, col, +alpha/2 )
 
 def AssemblyGravityToVector(linearSystem, grid, props, gravity, uShift=0):
     n = grid.getNumberOfVertices()
