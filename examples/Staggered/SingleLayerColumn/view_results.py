@@ -41,6 +41,7 @@ plt.figure(figsize=(15,6))
 plt.subplots_adjust(left=0.05, right=0.95, bottom=0.1, top=0.95)
 
 times = [1, 2, 10, 50, -1]
+times = [-1]
 
 plt.subplot(1,2,1)
 for t in times:

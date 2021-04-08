@@ -79,7 +79,7 @@ class Element(object):
         self.__area = area
         self.__vertices = vertices
         self.__buildFace()
-        self.__elementLength = self.__vertices[1].getCoordinate() - self.__vertices[0].getCoordinate()
+        self.__elementLength = abs(vertices[1].getCoordinate() - vertices[0].getCoordinate())
 
     def __buildFace(self):
         self.__face = Face(self.__vertices)
