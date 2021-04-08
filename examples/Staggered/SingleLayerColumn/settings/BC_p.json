@@ -1,0 +1,12 @@
+{
+    "TOP":
+    {
+        "Type": "Dirichlet",
+        "Value": 0.0
+    },
+    "BOTTOM":
+    {
+        "Type": "Neumann",
+        "Value": 0.0
+    }
+}

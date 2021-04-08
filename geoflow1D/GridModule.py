@@ -79,7 +79,7 @@ class Element(object):
         self.__area = area
         self.__vertices = vertices
         self.__buildFace()
-        self.__elementLength = self.__vertices[1].getCoordinate() - self.__vertices[0].getCoordinate()
+        self.__elementLength = abs(vertices[1].getCoordinate() - vertices[0].getCoordinate())
 
     def __buildFace(self):
         self.__face = Face(self.__vertices)
@@ -89,6 +89,11 @@ class Element(object):
 
     def getParentRegionIndex(self):
         return self.__parentRegionIndex
+
+    def getCentroid(self):
+        x0 = self.__vertices[0].getCoordinate()
+        x1 = self.__vertices[1].getCoordinate()
+        return (x0 + x1)/2
 
     def getVertices(self):
         return self.__vertices
